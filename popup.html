@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>e-Disciplinas Downloader</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      width: 340px;
+      background: #f8f9fa;
+      color: #212529;
+    }
+
+    header {
+      background: #003087;
+      color: white;
+      padding: 14px 16px;
+    }
+    header h1 { font-size: 15px; font-weight: 600; }
+    header p { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+    #content { padding: 16px; }
+
+    #error {
+      background: #fff0f0;
+      border: 1px solid #f5c6cb;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: #721c24;
+      font-size: 13px;
+      display: none;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 24px 0;
+      color: #6c757d;
+      font-size: 13px;
+      display: none;
+    }
+    #loading::before {
+      content: "";
+      display: block;
+      width: 28px;
+      height: 28px;
+      border: 3px solid #dee2e6;
+      border-top-color: #003087;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #courses-section { display: none; }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .filter-bar .section-label { margin-bottom: 0; }
+
+    .toggle-pill {
+      display: flex;
+      background: #e9ecef;
+      border-radius: 20px;
+      padding: 2px;
+      gap: 0;
+    }
+    .toggle-pill button {
+      flex: none;
+      padding: 4px 12px;
+      border-radius: 16px;
+      border: none;
+      background: transparent;
+      color: #6c757d;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .toggle-pill button.active {
+      background: white;
+      color: #003087;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .toggle-pill button:not(.active):hover { color: #495057; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6c757d;
+      margin-bottom: 8px;
+    }
+
+    .course-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+
+    .course-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 9px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .course-item:hover { border-color: #003087; }
+    .course-item.selected { border-color: #003087; background: #eef2ff; }
+    .course-item input[type="checkbox"] { margin-top: 1px; accent-color: #003087; flex-shrink: 0; }
+    .course-name { font-size: 13px; line-height: 1.35; }
+
+    .course-item .status {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 11px;
+      color: #6c757d;
+    }
+    .course-item .status.done { color: #198754; }
+    .course-item .status.running { color: #003087; }
+    .course-item .status.error { color: #dc3545; }
+
+    .actions { display: flex; gap: 8px; }
+
+    button {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #btn-download {
+      background: #003087;
+      color: white;
+    }
+    #btn-download:not(:disabled):hover { background: #002470; }
+
+    #btn-select-all {
+      background: white;
+      border: 1px solid #dee2e6;
+      color: #495057;
+      flex: 0 0 auto;
+      padding: 9px 12px;
+    }
+    #btn-select-all:hover { background: #f1f3f5; }
+
+    #log {
+      margin-top: 12px;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 8px 10px;
+      max-height: 120px;
+      overflow-y: auto;
+      display: none;
+    }
+    .log-line { font-size: 11px; color: #495057; line-height: 1.6; }
+    .log-line.done { color: #198754; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>e-Disciplinas Downloader</h1>
+    <p>USP — cursos em andamento</p>
+  </header>
+
+  <div id="content">
+    <div id="error"></div>
+    <div id="loading">Buscando cursos...</div>
+
+    <div id="courses-section">
+      <div class="filter-bar">
+        <div class="section-label">Selecione os cursos</div>
+        <div class="toggle-pill">
+          <button class="active" data-filter="inprogress">Ativas</button>
+          <button data-filter="all">Todas</button>
+        </div>
+      </div>
+      <div class="course-list" id="course-list"></div>
+      <div class="actions">
+        <button id="btn-select-all">Todos</button>
+        <button id="btn-download" disabled>Baixar selecionados</button>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
