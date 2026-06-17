@@ -48,10 +48,16 @@ function renderCourses(courses) {
     const item = document.createElement("div");
     item.className = "course-item";
     item.dataset.id = course.id;
-    item.innerHTML = `
-      <input type="checkbox" value="${course.id}" id="c-${course.id}" />
-      <label class="course-name" for="c-${course.id}">${course.name}</label>
-    `;
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.value = course.id;
+    cb.id = `c-${course.id}`;
+    const lbl = document.createElement("label");
+    lbl.className = "course-name";
+    lbl.htmlFor = `c-${course.id}`;
+    lbl.textContent = course.name;
+    item.appendChild(cb);
+    item.appendChild(lbl);
     item.addEventListener("click", (e) => {
       if (e.target.tagName === "INPUT") return;
       const cb = item.querySelector("input");
