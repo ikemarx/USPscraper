@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "edisciplinas Downloader",
+  "name": "USPscraper",
   "version": "1.0.0",
-  "description": "Baixa materiais dos seus cursos em andamento no edisciplinas USP.",
+  "description": "Baixa materiais dos seus cursos em andamento no edisciplinas.usp.br.",
   "permissions": [
     "cookies",
     "downloads"
@@ -30,7 +30,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "edisciplinas-downloader@usp",
+      "id": "uspscraper@usp",
       "strict_min_version": "109.0"
     }
   }
