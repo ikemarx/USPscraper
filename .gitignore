@@ -1,2 +1,3 @@
 .DS_Store
-*.zip
+Gemini_Generated_Image*
+dist/
